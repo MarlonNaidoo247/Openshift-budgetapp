@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Settings – BudgetTrack{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% set income_categories = [] %}
+{% set expense_categories = [] %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card card-custom">
+      <div class="card-header-custom">
+        <i class="fa-solid fa-sliders me-2"></i>General Settings
+      </div>
+      <div class="card-body p-3">
+        <form action="{{ url_for('settings') }}" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Base Display Currency</label>
+            <select class="form-select" name="base_currency">
+              {% for code, info in currencies.items() %}
+                <option value="{{ code }}" {% if code == settings.base_currency %}selected{% endif %}>
+                  {{ code }} – {{ info.name }} ({{ info.symbol }})
+                </option>
+              {% endfor %}
+            </select>
+            <div class="form-text">All totals and charts will display in this currency.</div>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk me-1"></i>Save Settings
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card card-custom mt-3">
+      <div class="card-header-custom">
+        <i class="fa-solid fa-arrows-rotate me-2"></i>Exchange Rates
+      </div>
+      <div class="card-body p-3">
+        <p class="text-muted small mb-3">
+          Last updated: <strong>{{ rates_updated }}</strong><br>
+          Rates are fetched from <a href="https://www.frankfurter.app" target="_blank">Frankfurter API</a> (free, no key needed).
+          If offline, fallback static rates are used.
+        </p>
+        <form action="{{ url_for('refresh_rates') }}" method="POST">
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="fa-solid fa-rotate me-1"></i>Refresh Live Rates
+          </button>
+        </form>
+
+        <div class="mt-3">
+          <div class="table-responsive" style="max-height:200px; overflow-y:auto;">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Currency</th><th class="text-end">Rate (per USD)</th></tr></thead>
+              <tbody>
+                {% for code, rate in rates.items() | sort %}
+                  <tr>
+                    <td>
+                      <span class="badge bg-secondary-subtle text-secondary">{{ code }}</span>
+                      {{ currencies.get(code, {}).get('name', code) }}
+                    </td>
+                    <td class="text-end">{{ "%.4f"|format(rate) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card card-custom">
+      <div class="card-header-custom">
+        <i class="fa-solid fa-circle-info me-2"></i>About
+      </div>
+      <div class="card-body p-3">
+        <h5 class="fw-bold mb-1">BudgetTrack</h5>
+        <p class="text-muted small mb-3">v1.0 — Multi-currency personal budget manager</p>
+        <hr />
+        <h6 class="fw-semibold">Supported Currencies</h6>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          {% for code, info in currencies.items() %}
+            <span class="badge bg-primary-subtle text-primary px-3 py-2">
+              {{ info.symbol }} {{ code }} — {{ info.name }}
+            </span>
+          {% endfor %}
+        </div>
+        <hr />
+        <h6 class="fw-semibold">Features</h6>
+        <ul class="list-unstyled small text-muted">
+          <li><i class="fa-solid fa-check text-success me-2"></i>Track income and expenses across multiple currencies</li>
+          <li><i class="fa-solid fa-check text-success me-2"></i>Set monthly budget limits per category</li>
+          <li><i class="fa-solid fa-check text-success me-2"></i>Live exchange rate conversion via Frankfurter API</li>
+          <li><i class="fa-solid fa-check text-success me-2"></i>Visual charts (bar, line, pie, doughnut)</li>
+          <li><i class="fa-solid fa-check text-success me-2"></i>Monthly and all-time financial reports</li>
+          <li><i class="fa-solid fa-check text-success me-2"></i>Quick currency converter widget</li>
+          <li><i class="fa-solid fa-check text-success me-2"></i>Data stored locally in JSON format</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
